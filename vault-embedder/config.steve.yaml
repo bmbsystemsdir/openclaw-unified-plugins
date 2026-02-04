@@ -1,0 +1,24 @@
+# Steve's vault-embedder configuration
+# Work vault for Blitz agent
+
+vault_path: /home/steve/obsidian-vault
+collection_name: vault_work
+
+qdrant_url: http://localhost:6333
+
+model_name: taylorai/bge-micro-v2
+model_dimensions: 384
+
+include_extensions:
+  - .md
+
+exclude_patterns:
+  - ".*"
+  - "_*"
+  - "templates/*"
+  - ".obsidian/*"
+  - "Archive/*"
+
+chunk_size: 1000
+chunk_overlap: 200
+min_chunk_size: 100

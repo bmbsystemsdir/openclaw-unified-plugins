@@ -1,0 +1,38 @@
+# vault-embedder configuration
+# Copy this to config.yaml and customize for your setup
+
+# Required: Path to your Obsidian vault
+vault_path: /path/to/your/obsidian-vault
+
+# Required: Qdrant collection name (unique per vault)
+# Steve uses: vault_work
+# Dexter uses: vault_personal
+collection_name: vault_work
+
+# Qdrant connection (default: local instance)
+qdrant_url: http://localhost:6333
+# qdrant_api_key: your-api-key  # Optional, for Qdrant Cloud
+
+# Embedding model (default: same as Smart Connections)
+model_name: taylorai/bge-micro-v2
+model_dimensions: 384
+
+# File filtering
+include_extensions:
+  - .md
+
+exclude_patterns:
+  - ".*"              # Hidden files/folders
+  - "_*"              # Underscore-prefixed
+  - "templates/*"     # Template folders
+  - "Archive/*"       # Archived content
+  - ".obsidian/*"     # Obsidian config
+
+# Chunking settings
+chunk_size: 1000      # Max characters per chunk
+chunk_overlap: 200    # Overlap between chunks
+min_chunk_size: 100   # Minimum chunk size to index
+
+# State file (tracks what's been indexed)
+# Default: .vault-embedder-state.json in vault root
+# state_file: /custom/path/to/state.json
