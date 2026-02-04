@@ -1,33 +1,24 @@
-# vault-embedder configuration for Dexter (Personal Vault)
+# Dexter's vault-embedder configuration
+# Personal vault for Dexter agent
 
-# Path to Marc's personal Obsidian vault
-vault_path: /home/marcxaurelius/vaults/garden-of-treasuries
-
-# Qdrant collection name
+vault_path: ~/garden-of-treasuries
 collection_name: vault_personal
 
-# Qdrant connection
 qdrant_url: http://localhost:6333
 
-# Embedding model
 model_name: taylorai/bge-micro-v2
 model_dimensions: 384
 
-# File filtering
 include_extensions:
   - .md
 
 exclude_patterns:
-  - ".*"              # Hidden files/folders
-  - "_*"              # Underscore-prefixed
-  - "templates/*"     # Template folders
-  - "Archive/*"       # Archived content
-  - ".obsidian/*"     # Obsidian config
+  - ".*"
+  - "_*"
+  - "templates/*"
+  - ".obsidian/*"
+  - "Archive/*"
 
-# Chunking settings
 chunk_size: 1000
 chunk_overlap: 200
 min_chunk_size: 100
-
-# State file
-state_file: /home/marcxaurelius/clawd/plugins/openclaw-unified-plugins/vault-embedder/.vault-embedder-state-dexter.json
