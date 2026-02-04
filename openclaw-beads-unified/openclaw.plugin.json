@@ -12,7 +12,7 @@
       "workspace": {
         "type": "string",
         "description": "Path to the beads workspace",
-        "default": "/home/steve/clawd"
+        "default": "./clawd"
       },
       "autoDetect": {
         "type": "boolean",

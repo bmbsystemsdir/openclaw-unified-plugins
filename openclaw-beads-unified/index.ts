@@ -440,7 +440,7 @@ const beadsConfigSchema = {
   parse(value: unknown): BeadsConfig {
     if (!value || typeof value !== 'object' || Array.isArray(value)) {
       return {
-        workspace: process.env.HOME ? `${process.env.HOME}/clawd` : '/home/steve/clawd',
+        workspace: process.env.HOME ? `${process.env.HOME}/clawd` : './clawd',
         autoDetect: true,
         autoClose: true,
         autoCaptureFilter: 'all',
@@ -456,7 +456,7 @@ const beadsConfigSchema = {
     const cfg = value as Record<string, unknown>;
 
     return {
-      workspace: typeof cfg.workspace === 'string' ? cfg.workspace : '/home/steve/clawd',
+      workspace: typeof cfg.workspace === 'string' ? cfg.workspace : './clawd',
       autoDetect: cfg.autoDetect !== false,
       autoClose: cfg.autoClose !== false,
       autoCaptureFilter: cfg.autoCaptureFilter === 'user_only' ? 'user_only' : 'all',
