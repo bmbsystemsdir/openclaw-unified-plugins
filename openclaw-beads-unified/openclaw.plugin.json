@@ -1,0 +1,65 @@
+{
+  "id": "openclaw-beads-unified",
+  "name": "Beads Task Tracker (Unified)",
+  "version": "2.0.0",
+  "description": "Unified task detection and management with Graphiti integration, auto-detect, auto-close, and configurable capture filters",
+  "kind": "extension",
+  "author": "Blitz + Dexter (collaboration)",
+  "entry": "index.ts",
+  "configSchema": {
+    "type": "object",
+    "properties": {
+      "workspace": {
+        "type": "string",
+        "description": "Path to the beads workspace",
+        "default": "/home/steve/clawd"
+      },
+      "autoDetect": {
+        "type": "boolean",
+        "description": "Automatically detect and create tasks from conversations",
+        "default": true
+      },
+      "autoClose": {
+        "type": "boolean",
+        "description": "Automatically close tasks when completion is detected",
+        "default": true
+      },
+      "autoCaptureFilter": {
+        "type": "string",
+        "enum": ["all", "user_only"],
+        "description": "Filter for auto-detection: 'all' processes both user and assistant, 'user_only' prevents feedback loops",
+        "default": "all"
+      },
+      "detectionThreshold": {
+        "type": "number",
+        "description": "Minimum confidence to auto-detect a task (0-1)",
+        "default": 0.7
+      },
+      "defaultPriority": {
+        "type": "number",
+        "description": "Default priority for auto-created tasks (1-4)",
+        "default": 2
+      },
+      "requireConfirmation": {
+        "type": "boolean",
+        "description": "Require user confirmation before auto-creating tasks",
+        "default": false
+      },
+      "linkToGraphiti": {
+        "type": "boolean",
+        "description": "Link task events (create/close/update) to Graphiti episodes",
+        "default": true
+      },
+      "graphitiEndpoint": {
+        "type": "string",
+        "description": "Graphiti MCP server endpoint (if linkToGraphiti is true)",
+        "default": "http://localhost:8000/mcp/"
+      },
+      "graphitiGroupId": {
+        "type": "string",
+        "description": "Graphiti group ID for task events",
+        "default": "default"
+      }
+    }
+  }
+}

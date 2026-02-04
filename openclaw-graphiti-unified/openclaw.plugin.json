@@ -1,0 +1,70 @@
+{
+  "id": "openclaw-graphiti-unified",
+  "name": "Graphiti Knowledge Graph (Unified)",
+  "version": "3.0.0",
+  "description": "Unified temporal knowledge graph with pattern+LLM contradiction detection, goal tracking, temporal queries, and configurable capture filters",
+  "kind": "extension",
+  "author": "Blitz + Dexter (collaboration)",
+  "entry": "index.ts",
+  "configSchema": {
+    "type": "object",
+    "properties": {
+      "endpoint": {
+        "type": "string",
+        "description": "Graphiti MCP server endpoint",
+        "default": "http://localhost:8000/mcp/"
+      },
+      "groupId": {
+        "type": "string",
+        "description": "Group ID for episode namespacing",
+        "default": "default"
+      },
+      "autoCapture": {
+        "type": "boolean",
+        "description": "Automatically capture episodes from conversations",
+        "default": true
+      },
+      "autoCaptureFilter": {
+        "type": "string",
+        "enum": ["all", "user_only"],
+        "description": "Filter for auto-capture: 'all' captures both user and assistant, 'user_only' prevents feedback loops",
+        "default": "all"
+      },
+      "autoRecall": {
+        "type": "boolean",
+        "description": "Automatically inject relevant facts into context",
+        "default": true
+      },
+      "detectContradictions": {
+        "type": "boolean",
+        "description": "Check for contradictions before storing",
+        "default": true
+      },
+      "captureThreshold": {
+        "type": "number",
+        "description": "Minimum confidence to capture an episode (0-1)",
+        "default": 0.5
+      },
+      "recallTopK": {
+        "type": "number",
+        "description": "Maximum facts to inject into context",
+        "default": 8
+      },
+      "recencyBoostDays": {
+        "type": "number",
+        "description": "Days threshold for recency boost marker",
+        "default": 7
+      },
+      "llmModel": {
+        "type": "string",
+        "description": "LLM model for classification and fallback contradiction detection",
+        "default": "gpt-4.1-nano"
+      },
+      "useLlmContradictionFallback": {
+        "type": "boolean",
+        "description": "Use LLM as fallback when pattern-based contradiction detection finds nothing",
+        "default": true
+      }
+    }
+  }
+}
