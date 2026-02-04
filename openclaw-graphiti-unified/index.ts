@@ -119,24 +119,102 @@ interface GoalInsight {
 // ============================================================================
 
 class GraphitiMCPClient {
+  private sessionId: string | null = null;
+  private initPromise: Promise<void> | null = null;
+
   constructor(
     private readonly endpoint: string,
     private readonly groupId: string,
     private readonly logger: { info: (msg: string) => void; warn: (msg: string) => void; error: (msg: string) => void },
   ) {}
 
+  private async ensureSession(): Promise<void> {
+    if (this.sessionId) return;
+    
+    // Prevent concurrent initialization
+    if (this.initPromise) {
+      await this.initPromise;
+      return;
+    }
+
+    this.initPromise = (async () => {
+      const url = this.endpoint.replace(/\/$/, '');
+      try {
+        const response = await fetch(`${url}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json, text/event-stream'
+          },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            id: Date.now(),
+            method: 'initialize',
+            params: {
+              protocolVersion: '2024-11-05',
+              capabilities: {},
+              clientInfo: { name: 'openclaw-graphiti', version: '3.0.0' }
+            }
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`Session init failed: HTTP ${response.status}`);
+        }
+
+        const sessionId = response.headers.get('mcp-session-id');
+        if (!sessionId) {
+          throw new Error('No mcp-session-id returned from initialize');
+        }
+
+        this.sessionId = sessionId;
+        this.logger.info(`Graphiti session established: ${sessionId.substring(0, 8)}...`);
+      } catch (err) {
+        this.initPromise = null; // Allow retry
+        throw err;
+      }
+    })();
+
+    await this.initPromise;
+  }
+
+  private parseSSE(text: string): unknown {
+    // Parse Server-Sent Events format
+    // Format: "event: message\ndata: <json>\n\n"
+    const lines = text.trim().split('\n');
+    for (const line of lines) {
+      if (line.startsWith('data: ')) {
+        const jsonStr = line.substring(6); // Remove "data: " prefix
+        return JSON.parse(jsonStr);
+      }
+    }
+    throw new Error('No data line found in SSE response');
+  }
+
   private async call(method: string, params: Record<string, unknown> = {}): Promise<unknown> {
+    await this.ensureSession();
+    
     const url = this.endpoint.replace(/\/$/, '');
+    
+    // Prepare arguments with group_id
+    const args = { group_id: this.groupId, ...params };
     
     try {
       const response = await fetch(`${url}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json, text/event-stream',
+          'mcp-session-id': this.sessionId!
+        },
         body: JSON.stringify({
           jsonrpc: '2.0',
           id: Date.now(),
-          method: `tools/${method}`,
-          params: { group_id: this.groupId, ...params },
+          method: 'tools/call',
+          params: {
+            name: method,
+            arguments: args
+          },
         }),
       });
 
@@ -144,9 +222,26 @@ class GraphitiMCPClient {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
-      const json = await response.json() as { result?: unknown; error?: { message: string } };
+      const contentType = response.headers.get('content-type') || '';
+      let json: { result?: unknown; error?: { message: string } };
+
+      if (contentType.includes('text/event-stream')) {
+        // Parse SSE format
+        const text = await response.text();
+        json = this.parseSSE(text) as { result?: unknown; error?: { message: string } };
+      } else {
+        // Parse plain JSON
+        json = await response.json() as { result?: unknown; error?: { message: string } };
+      }
+
       if (json.error) throw new Error(json.error.message);
-      return json.result;
+      
+      // Extract structured content from MCP response
+      const result = json.result as any;
+      if (result?.structuredContent?.result) {
+        return result.structuredContent.result;
+      }
+      return result;
     } catch (err) {
       this.logger.error(`Graphiti MCP call failed (${method}): ${String(err)}`);
       throw err;
@@ -177,19 +272,32 @@ class GraphitiMCPClient {
   }
 
   async searchNodes(query: string, maxNodes = 5): Promise<Entity[]> {
-    const result = await this.call('search_nodes', { query, max_nodes: maxNodes }) as { nodes?: Entity[] } | null;
+    const result = await this.call('search_nodes', { 
+      query, 
+      group_ids: [this.groupId],
+      max_nodes: maxNodes 
+    }) as { nodes?: Entity[] } | null;
     return result?.nodes ?? [];
   }
 
   async searchFacts(query: string, maxFacts = 10, entityUuid?: string): Promise<EntityEdge[]> {
-    const params: Record<string, unknown> = { query, max_facts: maxFacts };
+    const params: Record<string, unknown> = { 
+      query, 
+      group_ids: [this.groupId],
+      max_facts: maxFacts 
+    };
     if (entityUuid) params.center_node_uuid = entityUuid;
     const result = await this.call('search_memory_facts', params) as { facts?: EntityEdge[] } | null;
     return result?.facts ?? [];
   }
 
   async getEpisodes(maxEpisodes = 10): Promise<Episode[]> {
-    const result = await this.call('get_episodes', { max_episodes: maxEpisodes }) as { episodes?: Episode[] } | null;
+    // Note: base call() adds group_id, but get_episodes needs group_ids (array)
+    // We'll pass group_ids and the server will use it instead
+    const result = await this.call('get_episodes', { 
+      group_ids: [this.groupId], 
+      max_episodes: maxEpisodes 
+    }) as { episodes?: Episode[] } | null;
     return result?.episodes ?? [];
   }
 
