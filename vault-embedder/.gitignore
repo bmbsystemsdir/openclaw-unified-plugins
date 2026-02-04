@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.vault-embedder-state.json
+*.egg-info/
+dist/
+build/

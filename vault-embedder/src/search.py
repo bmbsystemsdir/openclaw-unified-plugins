@@ -98,13 +98,14 @@ class VaultSearcher:
             )
         
         # Search Qdrant
-        hits = self.client.search(
+        response = self.client.query_points(
             collection_name=self.config.collection_name,
-            query_vector=query_vector,
+            query=query_vector,
             limit=limit,
-            score_threshold=min_score,
+            score_threshold=min_score if min_score > 0 else None,
             query_filter=search_filter,
         )
+        hits = response.points
         
         # Convert to results
         results = []
@@ -175,13 +176,14 @@ class VaultSearcher:
             )
         
         # Search
-        hits = self.client.search(
+        response = self.client.query_points(
             collection_name=self.config.collection_name,
-            query_vector=source_vector,
+            query=source_vector,
             limit=limit,
-            score_threshold=min_score,
+            score_threshold=min_score if min_score > 0 else None,
             query_filter=search_filter,
         )
+        hits = response.points
         
         # Convert to results
         results = []
