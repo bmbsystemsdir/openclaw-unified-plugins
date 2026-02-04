@@ -297,13 +297,12 @@ class VaultIndexer:
         Returns:
             Dict with status information
         """
+        point_count = 0
         try:
             collection_info = self.client.get_collection(self.config.collection_name)
-            point_count = collection_info.points_count
-            vector_count = collection_info.vectors_count
+            point_count = collection_info.points_count or 0
         except Exception:
-            point_count = 0
-            vector_count = 0
+            pass
         
         return {
             "collection_name": self.config.collection_name,
